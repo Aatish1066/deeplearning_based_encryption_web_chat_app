@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <!-- Include any CSS stylesheets for styling -->
+    <link rel="stylesheet" href="static/home_page.css">
+</head>
+<body>
+    <h1>Welcome to Chat Room <span id="roomCode"></span></h1>
+    <div id="chat-messages">
+        <!-- Messages will be displayed here -->
+    </div>
+    <form id="messageForm">
+        <input type="text" id="messageInput" placeholder="Type your message...">
+        <button type="submit">Send</button>
+    </form>
+    <!-- Include jQuery for easier AJAX handling -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Get the room code from the URL query parameter
+            var roomCode = new URLSearchParams(window.location.search).get('room');
+            $('#roomCode').text(roomCode);
+            var userID = new URLSearchParams(window.location.search).get('userID');
+            $('#userID').text(userID);
+            // Function to fetch and display chat messages
+            function fetchMessages() {
+    $.get('/messages?room=' + roomCode + '&userID=' + userID, function(data) {
+        // Clear existing messages
+        $('#chat-messages').empty();
+        // Append each message to the chat window
+        data.messages.forEach(function(message) {
+            $('#chat-messages').append('<p><strong>' + message.sender + ':</strong> ' + message.text + '</p>');
+        });
+    });
+}
+
+
+            // Fetch messages when the page loads
+            fetchMessages();
+// Refresh chat window every second
+            setInterval(fetchMessages, 1000);
+            // Listen for form submission
+            $('#messageForm').submit(function(event) {
+                event.preventDefault(); // Prevent the default form submission
+                // Get the message input value
+                var message = $('#messageInput').val();
+                // Send the message to the server via AJAX
+
+                // Send the message to the server via AJAX
+                $.post('/send_message', { room: roomCode, message: message ,userID: userID}, function() {
+                    // Clear the message input field
+                    $('#messageInput').val('');
+                    // Fetch and display updated messages
+                    fetchMessages();
+                });
+
+                return false;
+            });
+        });
+    </script>
+</body>
+</html>
